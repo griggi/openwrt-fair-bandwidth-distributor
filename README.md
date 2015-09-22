@@ -13,7 +13,39 @@ While pre-fixing rate of the user to a pre-defined value (like 1 Mbps) can solve
 
 The most popular way to do traffic shaping is by using **tc** & **iptables**. Details at [Network Traffic Control in Openwrt](http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler). 
 
-An example openwrt configuration using tc command can be seen [here](http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler.example2)
+An example openwrt configuration using tc command can be seen [here](http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler.example2). Below is the modified version of the script that limits all user's bandwidth on subnet 192.168.2.0/24 to 1 Mbps download speed. The interface br-lan is the LAN interface (between Openwrt router & clients).
+
+	#!/bin/sh
+	# We have 1000kbit upload and want to guarantee each user a certain amount of it.
+	# If one user does not use its full quota, the unused quota get evenly distributed amongst the other users.
+	 
+	# Variables
+
+	UPLINK=br-lan
+	TC=$(which tc)
+	IPT=$(which iptables)
+	IPTMOD="$IPT -t mangle -A POSTROUTING -o $UPLINK"
+	IP_USER=192.168.2.0/24
+
+	insmod sch_htb
+
+	#remove everything first
+	echo 'removing it all ...'
+	$TC qdisc del dev $UPLINK root
+	echo 'checking if removed ..'
+	$TC -s qdisc ls dev $UPLINK
+
+	 
+	$TC qdisc add dev $UPLINK root       handle 1:    htb default 40
+	$TC class add dev $UPLINK parent 1:  classid 1:1  htb rate 1000kbit
+	$TC class add dev $UPLINK parent 1:1 classid 1:10 htb rate 250kbit #-- 25% to user1
+	 
+	$IPTMOD -d $IP_USER -j CLASSIFY --set-class 1:10
+	echo 'setup check ..'
+	$TC -s qdisc ls dev $UPLINK
+
+
+This bash script need to be run post boot & it will create required tc & iptable rules.
 
 But the way still does not provide an ideal scenario. Ideally, this should be achievable through a kernel module. 
 
