@@ -19,7 +19,9 @@ But the way still does not provide an ideal scenario. Ideally, this should be ac
 
 #### Setup - Openwrt & Openwrt SDK
 
-**prerequisite - you need a linux machine**
+Ideally, you would need an Openwrt supported router on which you can can flash Openwrt image. But there is a 'cheaper' way. You could create a virtual machine, install Openwrt on it & have another virtual machine client (windows/linux) that connects to internet through the Openwrt. This setup largely works.
+
+**prerequisite - you need a linux machine**. You could get step 1 & 2 below working with a Windows machine, but you will not get Openwrt SDK for any other platform. So you will not be able to build your own Openwrt package. 
 
 1. Download Virtual Box for linux. 
 2. Follow steps [here](http://wiki.openwrt.org/doc/howto/virtualbox) to setup openwrt inside virtual box. Also, setup a client in virtual box (as explained in the last part) & make sure it gets internet through the openwrt so that you have a client ready to test.
