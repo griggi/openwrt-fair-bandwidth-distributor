@@ -43,7 +43,7 @@ An example openwrt configuration using tc command can be seen [here](http://wiki
 	$TC -s qdisc ls dev $UPLINK
 
 
-This bash script need to be run post boot & it will create required tc & iptable rules.
+This bash script need to be run post boot & it will create required tc & iptable rules. To test, follow the Openwrt setup below, create a bash script in Openwrt & copy paste the above script & insert. Setup Openwrt br-lan interface on 192.168.2.0 subnet. Ensure the VM client connected to openwrt gets a 192.168.2.x IP & is able to ping internet through Openwrt. Now running a speedtest in the VM client should show a 1 Mbps (or less) speed provided your internet speed is > 1 Mbps. 
 
 But the way still does not provide an ideal scenario. Ideally, this should be achievable through a kernel module. 
 
