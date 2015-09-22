@@ -35,4 +35,10 @@ To change wifidog, simply clone it inside package directory in SDK & after code 
 
 Create an issue with the way you intend to solve (or if you have any problem). One of us will respond to it ASAP. 
 
+1. You may start by looking into tc code & see how it is doing the traffic shaping. Feel free to send over your proposal through github issue if you think tc code can be modified.
+
+2. You may also look into wifidog code. It just provides a captive portal & has no bandwidth monitoring/control as such. But if you think, it could be built, send over your proposal. 
+
+3. Once you have some idea - start setting up Openwrt & SDK. Clone your package of choice inside package directory of the SDK, modify the source, build it by running `make package/<your package>/compile V=99`, find the ipk in bin/ directory, copy in Openwrt & run `opkg install <your ipk>` to install the new module.
+
 You could go ahead, fork this repo & send pull request when done. 
