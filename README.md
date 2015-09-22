@@ -9,43 +9,52 @@ This problem hasn't been solved so far. This is technically called **traffic sha
 
 While in general, the bandwidth available is divided equally among all users, some user can still hog bandwidth & others will get reduced speed (like running a Youtube video in a public hotspot). 
 
-While pre-fixing rate of the user to a pre-defined value (like 1 Mbps) can solve this problem, but it is far from optimal. If the uplink speed is 10 Mbps & there is just 1 user, why should he live with just 1 Mbps speed !
 
 The most popular way to do traffic shaping is by using **tc** & **iptables**. Details at [Network Traffic Control in Openwrt](http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler). 
 
 An example openwrt configuration using tc command can be seen [here](http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler.example2). Below is the modified version of the script that limits all user's bandwidth on subnet 192.168.2.0/24 to 1 Mbps download speed. The interface br-lan is the LAN interface (between Openwrt router & clients).
 
+Install following packages first
+
+	opkg install tc kmod-sched iptables-mod-ipopt
+
+Then create a bash script, copy paste the below script & run `sh <script name>`
+
 	#!/bin/sh
 	 
 	# Variables
 
-	UPLINK=br-lan
+	LAN_INTERFACE=br-lan
 	TC=$(which tc)
 	IPT=$(which iptables)
-	IPTMOD="$IPT -t mangle -A POSTROUTING -o $UPLINK"
+	IPTMOD="$IPT -t mangle -A POSTROUTING -o $LAN_INTERFACE"
 	IP_USER=192.168.2.0/24
 
 	insmod sch_htb
 
 	#remove everything first
 	echo 'removing it all ...'
-	$TC qdisc del dev $UPLINK root
+	$TC qdisc del dev $LAN_INTERFACE root
 	echo 'checking if removed ..'
-	$TC -s qdisc ls dev $UPLINK
+	$TC -s qdisc ls dev $LAN_INTERFACE
 
 	 
-	$TC qdisc add dev $UPLINK root       handle 1:    htb default 40
-	$TC class add dev $UPLINK parent 1:  classid 1:1  htb rate 10000kbit #total uplink bandwidth
-	$TC class add dev $UPLINK parent 1:1 classid 1:10 htb rate 1000kbit #1Mbps to every user
+	$TC qdisc add dev $LAN_INTERFACE root       handle 1:    htb default 40
+	$TC class add dev $LAN_INTERFACE parent 1:  classid 1:1  htb rate 10000kbit #total internet download speed
+	$TC class add dev $LAN_INTERFACE parent 1:1 classid 1:10 htb rate 1000kbit #1Mbps to every user
 	 
 	$IPTMOD -d $IP_USER -j CLASSIFY --set-class 1:10
 	echo 'setup check ..'
-	$TC -s qdisc ls dev $UPLINK
+	$TC -s qdisc ls dev $LAN_INTERFACE
 
 
-This bash script need to be run post boot & it will create required tc & iptable rules. To test, follow the Openwrt setup below, create a bash script in Openwrt & copy paste the above script & insert. Setup Openwrt br-lan interface on 192.168.2.0 subnet. Ensure the VM client connected to openwrt gets a 192.168.2.x IP & is able to ping internet through Openwrt. Now running a speedtest in the VM client should show a 1 Mbps (or less) speed provided your internet speed is > 1 Mbps. 
+This bash script need to be run post boot & it will create required tc & iptable rules. 
 
-But the way still does not provide an ideal scenario. Ideally, this should be achievable through a kernel module. 
+To test, follow the Openwrt setup below, setup Openwrt LAN interface as br-lan & 192.168.2.0 subnet through /etc/config/network file. 
+
+Ensure the VM client connected to openwrt gets a 192.168.2.x IP & is able to ping internet through Openwrt. Now running a speedtest in the VM client should show a 1 Mbps (or less) speed provided your internet speed is > 1 Mbps. 
+
+While pre-fixing rate of the user to a pre-defined value (like 1 Mbps) can solve this problem, but it is far from optimal. If the uplink speed is 10 Mbps & there is just 1 user, why should he live with just 1 Mbps speed !
 
 #### Setup - Openwrt & Openwrt SDK
 
