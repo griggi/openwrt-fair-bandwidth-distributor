@@ -1,4 +1,4 @@
-## Proble Statement
+## Problem Statement
 
 While building [Griggi](griggi.com), we have this unique problem. We would like to share the bandwidth **equally** among all the connected guests. 
 
